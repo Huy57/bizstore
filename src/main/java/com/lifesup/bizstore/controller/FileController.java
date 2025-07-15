@@ -21,20 +21,20 @@ public class FileController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<CommonResponse<String>> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
-        fileService.uploadFile(file);
+    public ResponseEntity<CommonResponse<String>> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam(value = "remotePath", required = false) String remotePath) throws IOException {
+        fileService.uploadFile(file, remotePath);
         return ResponseEntity.ok(new CommonResponse<>("200", "File uploaded successfully", null));
     }
 
     @GetMapping
-    public ResponseEntity<CommonResponse<List<String>>> listFiles() {
-        List<String> files = fileService.listFiles();
+    public ResponseEntity<CommonResponse<List<String>>> listFiles(@RequestParam(value = "remotePath", required = false) String remotePath) {
+        List<String> files = fileService.listFiles(remotePath);
         return ResponseEntity.ok(new CommonResponse<>("200", "Success", files));
     }
 
     @GetMapping("/download/{filename}")
-    public ResponseEntity<byte[]> downloadFile(@PathVariable String filename) {
-        byte[] data = fileService.downloadFile(filename);
+    public ResponseEntity<byte[]> downloadFile(@PathVariable String filename, @RequestParam(value = "remotePath", required = false) String remotePath) {
+        byte[] data = fileService.downloadFile(filename, remotePath);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
@@ -43,22 +43,22 @@ public class FileController {
 
     // API tạo presigned URL download tạm thời
     @GetMapping("/presign")
-    public ResponseEntity<CommonResponse<String>> getPresignedUrl(@RequestParam String filename, @RequestParam(defaultValue = "300") int expireSeconds) {
-        String url = fileService.generatePresignedUrl(filename, expireSeconds);
+    public ResponseEntity<CommonResponse<String>> getPresignedUrl(@RequestParam String filename, @RequestParam(defaultValue = "300") int expireSeconds, @RequestParam(value = "remotePath", required = false) String remotePath) {
+        String url = fileService.generatePresignedUrl(filename, expireSeconds, remotePath);
         return ResponseEntity.ok(new CommonResponse<>("200", "Success", url));
     }
 
     // API xóa file
     @DeleteMapping("/{filename}")
-    public ResponseEntity<CommonResponse<String>> deleteFile(@PathVariable String filename) {
-        fileService.deleteFile(filename);
+    public ResponseEntity<CommonResponse<String>> deleteFile(@PathVariable String filename, @RequestParam(value = "remotePath", required = false) String remotePath) {
+        fileService.deleteFile(filename, remotePath);
         return ResponseEntity.ok(new CommonResponse<>("200", "File deleted successfully", null));
     }
 
     // API đổi tên file
     @PostMapping("/rename")
-    public ResponseEntity<CommonResponse<String>> renameFile(@RequestParam String oldName, @RequestParam String newName) {
-        fileService.renameFile(oldName, newName);
+    public ResponseEntity<CommonResponse<String>> renameFile(@RequestParam String oldName, @RequestParam String newName, @RequestParam(value = "remotePath", required = false) String remotePath) {
+        fileService.renameFile(oldName, newName, remotePath);
         return ResponseEntity.ok(new CommonResponse<>("200", "File renamed successfully", null));
     }
 

@@ -26,25 +26,31 @@ public class FileService {
         this.s3Client = s3Client;
     }
 
-    public void uploadFile(MultipartFile file) throws IOException {
+    public void uploadFile(MultipartFile file, String remotePath) throws IOException {
+        String key = (remotePath != null && !remotePath.isEmpty()) ? remotePath + "/" + file.getOriginalFilename() : file.getOriginalFilename();
         s3Client.putObject(
             PutObjectRequest.builder()
                 .bucket(bucket)
-                .key(file.getOriginalFilename())
+                .key(key)
                 .contentType(file.getContentType())
                 .build(),
             software.amazon.awssdk.core.sync.RequestBody.fromBytes(file.getBytes())
         );
     }
 
-    public List<String> listFiles() {
-        ListObjectsV2Response res = s3Client.listObjectsV2(ListObjectsV2Request.builder().bucket(bucket).build());
+    public List<String> listFiles(String remotePath) {
+        ListObjectsV2Request.Builder builder = ListObjectsV2Request.builder().bucket(bucket);
+        if (remotePath != null && !remotePath.isEmpty()) {
+            builder.prefix(remotePath + "/");
+        }
+        ListObjectsV2Response res = s3Client.listObjectsV2(builder.build());
         return res.contents().stream().map(S3Object::key).collect(Collectors.toList());
     }
 
-    public byte[] downloadFile(String key) {
+    public byte[] downloadFile(String key, String remotePath) {
+        String fullKey = (remotePath != null && !remotePath.isEmpty()) ? remotePath + "/" + key : key;
         return s3Client.getObject(
-            GetObjectRequest.builder().bucket(bucket).key(key).build(),
+            GetObjectRequest.builder().bucket(bucket).key(fullKey).build(),
             software.amazon.awssdk.core.sync.ResponseTransformer.toBytes()
         ).asByteArray();
     }
@@ -61,7 +67,8 @@ public class FileService {
         s3Client.deleteBucket(DeleteBucketRequest.builder().bucket(bucketName).build());
     }
 
-    public String generatePresignedUrl(String key, int expireSeconds) {
+    public String generatePresignedUrl(String key, int expireSeconds, String remotePath) {
+        String fullKey = (remotePath != null && !remotePath.isEmpty()) ? remotePath + "/" + key : key;
         S3Presigner presigner = S3Presigner.builder()
                 .endpointOverride(s3Client.serviceClientConfiguration().endpointOverride().get())
                 .region(s3Client.serviceClientConfiguration().region())
@@ -69,7 +76,7 @@ public class FileService {
                 .build();
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(bucket)
-                .key(key)
+                .key(fullKey)
                 .build();
         GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
                 .signatureDuration(Duration.ofSeconds(expireSeconds))
@@ -80,17 +87,20 @@ public class FileService {
         return url;
     }
 
-    public void deleteFile(String key) {
-        s3Client.deleteObject(DeleteObjectRequest.builder().bucket(bucket).key(key).build());
+    public void deleteFile(String key, String remotePath) {
+        String fullKey = (remotePath != null && !remotePath.isEmpty()) ? remotePath + "/" + key : key;
+        s3Client.deleteObject(DeleteObjectRequest.builder().bucket(bucket).key(fullKey).build());
     }
 
-    public void renameFile(String oldKey, String newKey) {
+    public void renameFile(String oldKey, String newKey, String remotePath) {
+        String oldFullKey = (remotePath != null && !remotePath.isEmpty()) ? remotePath + "/" + oldKey : oldKey;
+        String newFullKey = (remotePath != null && !remotePath.isEmpty()) ? remotePath + "/" + newKey : newKey;
         s3Client.copyObject(CopyObjectRequest.builder()
                 .sourceBucket(bucket)
-                .sourceKey(oldKey)
+                .sourceKey(oldFullKey)
                 .destinationBucket(bucket)
-                .destinationKey(newKey)
+                .destinationKey(newFullKey)
                 .build());
-        deleteFile(oldKey);
+        deleteFile(oldKey, remotePath);
     }
 } 
