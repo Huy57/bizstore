@@ -8,6 +8,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Collections;
+import com.lifesup.bizstore.CommonResponse;
 
 @RestController
 @RequestMapping("/files")
@@ -19,14 +21,15 @@ public class FileController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
+    public ResponseEntity<CommonResponse<String>> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
         fileService.uploadFile(file);
-        return ResponseEntity.ok("File uploaded successfully");
+        return ResponseEntity.ok(new CommonResponse<>("200", "File uploaded successfully", null));
     }
 
     @GetMapping
-    public List<String> listFiles() {
-        return fileService.listFiles();
+    public ResponseEntity<CommonResponse<List<String>>> listFiles() {
+        List<String> files = fileService.listFiles();
+        return ResponseEntity.ok(new CommonResponse<>("200", "Success", files));
     }
 
     @GetMapping("/download/{filename}")
@@ -40,53 +43,54 @@ public class FileController {
 
     // API lấy danh sách bucket
     @GetMapping("/buckets")
-    public List<String> listBuckets() {
-        return fileService.listBuckets();
+    public ResponseEntity<CommonResponse<List<String>>> listBuckets() {
+        List<String> buckets = fileService.listBuckets();
+        return ResponseEntity.ok(new CommonResponse<>("200", "Success", buckets));
     }
 
     // API tạo mới bucket
     @PostMapping("/buckets")
-    public ResponseEntity<String> createBucket(@RequestParam String bucketName) {
+    public ResponseEntity<CommonResponse<String>> createBucket(@RequestParam String bucketName) {
         fileService.createBucket(bucketName);
-        return ResponseEntity.ok("Bucket created successfully");
+        return ResponseEntity.ok(new CommonResponse<>("200", "Bucket created successfully", null));
     }
 
     // API xoá bucket
     @DeleteMapping("/buckets/{bucketName}")
-    public ResponseEntity<String> deleteBucket(@PathVariable String bucketName) {
+    public ResponseEntity<CommonResponse<String>> deleteBucket(@PathVariable String bucketName) {
         fileService.deleteBucket(bucketName);
-        return ResponseEntity.ok("Bucket deleted successfully");
+        return ResponseEntity.ok(new CommonResponse<>("200", "Bucket deleted successfully", null));
     }
 
     // API kiểm tra access-key và secret-key
     @GetMapping("/check-credentials")
-    public ResponseEntity<String> checkCredentials() {
+    public ResponseEntity<CommonResponse<String>> checkCredentials() {
         try {
             fileService.listBuckets();
-            return ResponseEntity.ok("Credentials are valid");
+            return ResponseEntity.ok(new CommonResponse<>("200", "Credentials are valid", null));
         } catch (Exception e) {
-            return ResponseEntity.status(401).body("Invalid credentials: " + e.getMessage());
+            return ResponseEntity.status(401).body(new CommonResponse<>("401", "Invalid credentials: " + e.getMessage(), null));
         }
     }
 
     // API tạo presigned URL download tạm thời
-    @GetMapping("/file")
-    public ResponseEntity<String> getPresignedUrl(@RequestParam String filename, @RequestParam(defaultValue = "300") int expireSeconds) {
+    @GetMapping("/presign")
+    public ResponseEntity<CommonResponse<String>> getPresignedUrl(@RequestParam String filename, @RequestParam(defaultValue = "300") int expireSeconds) {
         String url = fileService.generatePresignedUrl(filename, expireSeconds);
-        return ResponseEntity.ok(url);
+        return ResponseEntity.ok(new CommonResponse<>("200", "Success", url));
     }
 
     // API xóa file
-    @DeleteMapping("/files/{filename}")
-    public ResponseEntity<String> deleteFile(@PathVariable String filename) {
+    @DeleteMapping("/{filename}")
+    public ResponseEntity<CommonResponse<String>> deleteFile(@PathVariable String filename) {
         fileService.deleteFile(filename);
-        return ResponseEntity.ok("File deleted successfully");
+        return ResponseEntity.ok(new CommonResponse<>("200", "File deleted successfully", null));
     }
 
     // API đổi tên file
-    @PostMapping("/files/rename")
-    public ResponseEntity<String> renameFile(@RequestParam String oldName, @RequestParam String newName) {
+    @PostMapping("/rename")
+    public ResponseEntity<CommonResponse<String>> renameFile(@RequestParam String oldName, @RequestParam String newName) {
         fileService.renameFile(oldName, newName);
-        return ResponseEntity.ok("File renamed successfully");
+        return ResponseEntity.ok(new CommonResponse<>("200", "File renamed successfully", null));
     }
 } 

@@ -29,7 +29,7 @@ public class S3Config {
                 .endpointOverride(URI.create(endpoint))
                 .credentialsProvider(StaticCredentialsProvider.create(
                         AwsBasicCredentials.create(accessKey, secretKey)))
-                .region(Region.AP_SOUTHEAST_1)
+                .region(Region.of("hn"))
                 .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
                 .httpClient(UrlConnectionHttpClient.create())
                 .build();
