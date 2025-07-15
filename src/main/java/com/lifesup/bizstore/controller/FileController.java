@@ -1,5 +1,7 @@
-package com.lifesup.bizstore;
+package com.lifesup.bizstore.controller;
 
+import com.lifesup.bizstore.util.CommonResponse;
+import com.lifesup.bizstore.service.FileService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -8,8 +10,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Collections;
-import com.lifesup.bizstore.CommonResponse;
 
 @RestController
 @RequestMapping("/files")
@@ -39,6 +39,27 @@ public class FileController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(data);
+    }
+
+    // API tạo presigned URL download tạm thời
+    @GetMapping("/presign")
+    public ResponseEntity<CommonResponse<String>> getPresignedUrl(@RequestParam String filename, @RequestParam(defaultValue = "300") int expireSeconds) {
+        String url = fileService.generatePresignedUrl(filename, expireSeconds);
+        return ResponseEntity.ok(new CommonResponse<>("200", "Success", url));
+    }
+
+    // API xóa file
+    @DeleteMapping("/{filename}")
+    public ResponseEntity<CommonResponse<String>> deleteFile(@PathVariable String filename) {
+        fileService.deleteFile(filename);
+        return ResponseEntity.ok(new CommonResponse<>("200", "File deleted successfully", null));
+    }
+
+    // API đổi tên file
+    @PostMapping("/rename")
+    public ResponseEntity<CommonResponse<String>> renameFile(@RequestParam String oldName, @RequestParam String newName) {
+        fileService.renameFile(oldName, newName);
+        return ResponseEntity.ok(new CommonResponse<>("200", "File renamed successfully", null));
     }
 
     // API lấy danh sách bucket
@@ -71,26 +92,5 @@ public class FileController {
         } catch (Exception e) {
             return ResponseEntity.status(401).body(new CommonResponse<>("401", "Invalid credentials: " + e.getMessage(), null));
         }
-    }
-
-    // API tạo presigned URL download tạm thời
-    @GetMapping("/presign")
-    public ResponseEntity<CommonResponse<String>> getPresignedUrl(@RequestParam String filename, @RequestParam(defaultValue = "300") int expireSeconds) {
-        String url = fileService.generatePresignedUrl(filename, expireSeconds);
-        return ResponseEntity.ok(new CommonResponse<>("200", "Success", url));
-    }
-
-    // API xóa file
-    @DeleteMapping("/{filename}")
-    public ResponseEntity<CommonResponse<String>> deleteFile(@PathVariable String filename) {
-        fileService.deleteFile(filename);
-        return ResponseEntity.ok(new CommonResponse<>("200", "File deleted successfully", null));
-    }
-
-    // API đổi tên file
-    @PostMapping("/rename")
-    public ResponseEntity<CommonResponse<String>> renameFile(@RequestParam String oldName, @RequestParam String newName) {
-        fileService.renameFile(oldName, newName);
-        return ResponseEntity.ok(new CommonResponse<>("200", "File renamed successfully", null));
     }
 } 

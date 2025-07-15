@@ -1,4 +1,4 @@
-package com.lifesup.bizstore;
+package com.lifesup.bizstore.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

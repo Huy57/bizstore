@@ -1,4 +1,4 @@
-package com.lifesup.bizstore;
+package com.lifesup.bizstore.util;
 
 public class CommonResponse<T> {
     private String code;
