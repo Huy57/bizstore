@@ -1,6 +1,7 @@
 services:
   bizstore:
     image: bizstore:latest
+    container_name: bitzstore
     build:
       context: .
       dockerfile: Dockerfile
