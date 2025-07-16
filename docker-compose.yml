@@ -1,0 +1,15 @@
+services:
+  bizstore:
+    image: bizstore:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8084:8080"
+    environment:
+      BIZFLY_S3_ENDPOINT: ${END_POINT}
+      BIZFLY_S3_ACCESS_KEY: ${ACCESS_KEY}
+      BIZFLY_S3_SECRET_KEY: ${SECRET_KEY}
+      BIZFLY_S3_BUCKET: ${BUCKET_NAME}
+      API_KEY: ${API_KEY}
+    restart: unless-stopped 
