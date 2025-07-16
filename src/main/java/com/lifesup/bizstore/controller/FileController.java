@@ -22,8 +22,12 @@ public class FileController {
 
     @PostMapping("/upload")
     public ResponseEntity<CommonResponse<String>> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam(value = "remotePath", required = false) String remotePath) throws IOException {
-        fileService.uploadFile(file, remotePath);
-        return ResponseEntity.ok(new CommonResponse<>("200", "File uploaded successfully", null));
+        try {
+            fileService.uploadFile(file, remotePath);
+            return ResponseEntity.ok(new CommonResponse<>("200", "File uploaded successfully", null));
+        } catch (IOException e) {
+            return ResponseEntity.badRequest().body(new CommonResponse<>("400", e.getMessage(), null));
+        }
     }
 
     @GetMapping
